@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <title>Kalkulator Week of Gestation (Offline)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- PWA: manifest + theme-color -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1976d2">
+
+  <style>
+    /* ===============================
+       SETTING SAIZ GAMBAR DI SINI
+       =============================== */
+    :root {
+      --header-img-width: 140px; /* contoh: 100px, 150px, 200px */
+      --footer-img-width: 160px;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: #fafafa;
+      text-align: center;
+    }
+    h1 {
+      font-size: 22px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    /* IMEJ ATAS & BAWAH */
+    .header-image {
+      width: var(--header-img-width);
+      max-width: 100%;
+      margin: 10px auto 16px auto;
+      display: block;
+    }
+    .footer-image {
+      width: var(--footer-img-width);
+      max-width: 100%;
+      margin: 16px auto 6px auto;
+      display: block;
+    }
+
+    label {
+      display: block;
+      margin-top: 12px;
+      font-weight: bold;
+      text-align: left;
+    }
+    input[type="date"],
+    input[type="number"] {
+      width: 100%;
+      padding: 8px;
+      margin-top: 4px;
+      box-sizing: border-box;
+    }
+    .row {
+      display: flex;
+      gap: 10px;
+    }
+    .row > div {
+      flex: 1;
+    }
+    button {
+      margin-top: 16px;
+      padding: 10px 16px;
+      font-size: 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      background: #1976d2;
+      color: white;
+      width: 100%;
+    }
+    button:hover {
+      background: #0d47a1;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 12px;
+      border-radius: 6px;
+      background: #e3f2fd;
+      text-align: left;
+    }
+    .error {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 6px;
+      background: #ffebee;
+      color: #c62828;
+    }
+    small {
+      font-size: 12px;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- IMEJ ATAS -->
+  <img src="IMAGE_ATAS_URL" class="header-image" alt="Logo Atas">
+
+  <h1>Kalkulator Week of Gestation (Offline)</h1>
+
+  <!-- Input tarikh first booking -->
+  <label for="bookingDate">Tarikh First Booking</label>
+  <input type="date" id="bookingDate">
+
+  <!-- Input week of gestation pada tarikh first booking -->
+  <label>Week of Gestation pada Tarikh First Booking</label>
+  <div class="row">
+    <div>
+      <small>Minggu</small>
+      <input type="number" id="bookingWeeks" min="0" max="45" placeholder="cth: 12">
+    </div>
+    <div>
+      <small>Hari (0–6)</small>
+      <input type="number" id="bookingDays" min="0" max="6" placeholder="cth: 3">
+    </div>
+  </div>
+
+  <!-- Tarikh sasaran (default = hari ini) -->
+  <label for="targetDate">
+    Tarikh Sasaran Kiraan 
+    <small>(default: hari ini – boleh kosongkan jika nak guna tarikh semasa)</small>
+  </label>
+  <input type="date" id="targetDate">
+
+  <button id="calculateBtn">Kira Week of Gestation</button>
+
+  <div id="error" class="error" style="display:none;"></div>
+
+  <div id="result" class="result" style="display:none;"></div>
+
+  <!-- IMEJ BAWAH -->
+  <img src="IMAGE_BAWAH_URL" class="footer-image" alt="Logo Bawah">
+
+  <script>
+    function parseDateInput(value) {
+      if (!value) return null;
+      const parts = value.split("-");
+      if (parts.length !== 3) return null;
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1;
+      const day = parseInt(parts[2], 10);
+      return new Date(year, month, day);
+    }
+
+    function diffInDays(date1, date2) {
+      const oneDayMs = 24 * 60 * 60 * 1000;
+      const d1 = new Date(date1.getFullYear(), date1.getMonth(), date1.getDate());
+      const d2 = new Date(date2.getFullYear(), date2.getMonth(), date2.getDate());
+      const diffMs = d2 - d1;
+      return Math.round(diffMs / oneDayMs);
+    }
+
+    document.getElementById("calculateBtn").addEventListener("click", function () {
+      const bookingDateValue = document.getElementById("bookingDate").value;
+      const bookingWeeksValue = document.getElementById("bookingWeeks").value;
+      const bookingDaysValue = document.getElementById("bookingDays").value;
+      const targetDateValue = document.getElementById("targetDate").value;
+
+      const errorDiv = document.getElementById("error");
+      const resultDiv = document.getElementById("result");
+      errorDiv.style.display = "none";
+      resultDiv.style.display = "none";
+      errorDiv.textContent = "";
+      resultDiv.textContent = "";
+
+      if (!bookingDateValue) {
+        errorDiv.textContent = "Sila masukkan Tarikh First Booking.";
+        errorDiv.style.display = "block";
+        return;
+      }
+
+      const bookingDate = parseDateInput(bookingDateValue);
+      if (!bookingDate) {
+        errorDiv.textContent = "Tarikh First Booking tidak sah.";
+        errorDiv.style.display = "block";
+        return;
+      }
+
+      let bookingWeeks = parseInt(bookingWeeksValue || "0", 10);
+      let bookingDays = parseInt(bookingDaysValue || "0", 10);
+
+      if (isNaN(bookingWeeks) || bookingWeeks < 0) {
+        errorDiv.textContent = "Week of gestation (minggu) pada first booking tidak sah.";
+        errorDiv.style.display = "block";
+        return;
+      }
+
+      if (isNaN(bookingDays) || bookingDays < 0 || bookingDays > 6) {
+        errorDiv.textContent = "Hari pada week of gestation perlu antara 0 hingga 6.";
+        errorDiv.style.display = "block";
+        return;
+      }
+
+      let targetDate;
+      if (targetDateValue) {
+        targetDate = parseDateInput(targetDateValue);
+        if (!targetDate) {
+          errorDiv.textContent = "Tarikh sasaran tidak sah.";
+          errorDiv.style.display = "block";
+          return;
+        }
+      } else {
+        targetDate = new Date();
+      }
+
+      const daysBetween = diffInDays(bookingDate, targetDate);
+      if (daysBetween < 0) {
+        errorDiv.textContent = "Tarikh sasaran tidak boleh lebih awal daripada tarikh first booking.";
+        errorDiv.style.display = "block";
+        return;
+      }
+
+      const totalDaysAtBooking = bookingWeeks * 7 + bookingDays;
+      const totalDaysNow = totalDaysAtBooking + daysBetween;
+
+      const currentWeeks = Math.floor(totalDaysNow / 7);
+      const currentDays = totalDaysNow % 7;
+
+      function formatDate(d) {
+        const dd = String(d.getDate()).padStart(2, "0");
+        const mm = String(d.getMonth() + 1).padStart(2, "0");
+        const yyyy = d.getFullYear();
+        return dd + "/" + mm + "/" + yyyy;
+      }
+
+      const bookingDateText = formatDate(bookingDate);
+      const targetDateText = formatDate(targetDate);
+
+      resultDiv.innerHTML = `
+        <strong>Keputusan Kiraan:</strong><br><br>
+        Tarikh First Booking: <strong>${bookingDateText}</strong><br>
+        Week of Gestation pada First Booking: <strong>${bookingWeeks} minggu ${bookingDays} hari</strong><br><br>
+        Tarikh Sasaran: <strong>${targetDateText}</strong><br>
+        Week of Gestation pada tarikh ini ialah: <strong>${currentWeeks} minggu ${currentDays} hari</strong><br><br>
+        <small>
+          Kiraan ini berdasarkan formula asas:<br>
+          (Minggu + Hari pada tarikh first booking) + perbezaan hari di antara tarikh sasaran dan tarikh first booking.
+        </small>
+      `;
+      resultDiv.style.display = "block";
+    });
+
+    // PWA: register service worker
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("./service-worker.js")
+          .catch(function (err) {
+            console.log("Service worker registration failed:", err);
+          });
+      });
+    }
+  </script>
+
+</body>
+</html>
