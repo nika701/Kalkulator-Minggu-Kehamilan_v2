@@ -6,8 +6,10 @@ const URLS_TO_CACHE = [
   "./index.html",
   "./manifest.json",
   "./service-worker.js",
-  "./Logo Jata.svg",
-  "./Logo Bawah.svg"
+  "./Logo-Jata.svg",
+  "./Logo-Below.png"
+  "./icon-192.svg"
+  "./iocn-152.svg"
   // tambah lagi kalau ada file lain (icons, css external, dsb.)
 ];
 
