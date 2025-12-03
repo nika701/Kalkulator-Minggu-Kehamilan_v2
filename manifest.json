@@ -1,8 +1,8 @@
 {
   "name": "Kalkulator Minggu Kehamilan",
   "short_name": "PregW Calc",
-  "start_url": "/Kalkulator-Minggu-Kehamilan/",
-  "scope": "/Kalkulator-Minggu-Kehamilan/",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#fafafa",
   "theme_color": "#1976d2",
